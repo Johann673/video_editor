@@ -39,7 +39,7 @@ class _CoverViewerState extends State<CoverViewer> with CropPreviewMixin {
 
   void _scaleRect() {
     layout = computeLayout(widget.controller);
-    rect.value = calculateCroppedRect(widget.controller, layout);
+    rect.value = calculateCroppedRectCover(widget.controller, layout);
     transform.value = TransformData.fromRect(
       rect.value,
       layout,
