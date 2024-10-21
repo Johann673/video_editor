@@ -97,6 +97,23 @@ Rect calculateCroppedRect(
   );
 }
 
+/// Calculate crop [Rect] area
+/// depending of [controller] min and max crop values and the size of the layout
+Rect calculateCroppedRectCover(
+  VideoEditorController controller,
+  Size layout, {
+  Offset? min,
+  Offset? max,
+}) {
+  final Offset minCrop = min ?? controller.minCropCover;
+  final Offset maxCrop = max ?? controller.maxCropCover;
+
+  return Rect.fromPoints(
+    Offset(minCrop.dx * layout.width, minCrop.dy * layout.height),
+    Offset(maxCrop.dx * layout.width, maxCrop.dy * layout.height),
+  );
+}
+
 /// Return `true` if the difference between [a] and [b] is less than `0.001`
 bool isNumberAlmost(double a, int b) => nearEqual(a, b.toDouble(), 0.01);
 
