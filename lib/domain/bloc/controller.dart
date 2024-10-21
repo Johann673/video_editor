@@ -109,12 +109,15 @@ class VideoEditorController extends ChangeNotifier {
   bool isCropping = false;
 
   double? _preferredCropAspectRatio;
+  double? _preferredCropAspectRatioCover;
 
   double _minTrim = _min.dx;
   double _maxTrim = _max.dx;
 
   Offset _minCrop = _min;
   Offset _maxCrop = _max;
+  Offset _minCropCover = _min;
+  Offset _maxCropCover = _max;
 
   Offset cacheMinCrop = _min;
   Offset cacheMaxCrop = _max;
@@ -182,6 +185,18 @@ class VideoEditorController extends ChangeNotifier {
   /// The maximum value of this param is `1.0`
   Offset get maxCrop => _maxCrop;
 
+  /// The [minCropCover] param is the [Rect.topLeft] position of the crop area
+  ///
+  /// The minimum value of this param is `0.0`
+  /// The maximum value of this param is `1.0`
+  Offset get minCropCover => _minCropCover;
+
+  /// The [maxCropCover] param is the [Rect.bottomRight] position of the crop area
+  ///
+  /// The minimum value of this param is `0.0`
+  /// The maximum value of this param is `1.0`
+  Offset get maxCropCover => _maxCropCover;
+
   /// Get the [Size] of the [videoDimension] cropped by the points [minCrop] & [maxCrop]
   Size get croppedArea => Rect.fromLTWH(
         0,
@@ -227,6 +242,43 @@ class VideoEditorController extends ChangeNotifier {
     }
   }
 
+  /// The [preferredCropAspectRatioCover] param is the selected aspect ratio (9:16, 3:4, 1:1, ...)
+  double? get preferredCropAspectRatioCover => _preferredCropAspectRatioCover;
+
+  set preferredCropAspectRatioCover(double? value) {
+    if (preferredCropAspectRatioCover == value) return;
+    _preferredCropAspectRatioCover = value;
+    notifyListeners();
+  }
+
+  /// Set [preferredCropAspectRatioCover] to the current cropped area ratio
+  void setPreferredRatioCoverFromCrop() {
+    _preferredCropAspectRatioCover = croppedArea.aspectRatioCover;
+    notifyListeners();
+  }
+
+  /// Update the [preferredCropAspectRatio] param and init/reset crop parameters [minCrop] & [maxCrop] to match the desired ratio
+  /// The crop area will be at the center of the layout
+  void cropAspectRatioCover(double? value) {
+    preferredCropAspectRatioCover = value;
+
+    if (value != null) {
+      final newSize = computeSizeWithRatio(videoDimension, value);
+
+      Rect centerCrop = Rect.fromCenter(
+        center: Offset(videoWidth / 2, videoHeight / 2),
+        width: newSize.width,
+        height: newSize.height,
+      );
+
+      _minCropCover =
+          Offset(centerCrop.left / videoWidth, centerCrop.top / videoHeight);
+      _maxCropCover = Offset(
+          centerCrop.right / videoWidth, centerCrop.bottom / videoHeight);
+      notifyListeners();
+    }
+  }
+
   //----------------//
   //VIDEO CONTROLLER//
   //----------------//
@@ -246,7 +298,7 @@ class VideoEditorController extends ChangeNotifier {
   ///   // NOTE : handle the error here
   /// }, test: (e) => e is VideoMinDurationError);
   /// ```
-  Future<void> initialize({double? aspectRatio}) async {
+  Future<void> initialize({double? aspectRatio, double? aspectRatioCover}) async {
     await _video.initialize();
 
     if (minDuration > videoDuration) {
@@ -268,6 +320,7 @@ class VideoEditorController extends ChangeNotifier {
     }
 
     cropAspectRatio(aspectRatio);
+    cropAspectRatioCover(aspectRatioCover);
     generateDefaultCoverThumbnail();
 
     notifyListeners();
