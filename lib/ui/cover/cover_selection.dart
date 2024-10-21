@@ -83,7 +83,7 @@ class _CoverSelectionState extends State<CoverSelection>
   bool get wantKeepAlive => true;
 
   void _scaleRect() {
-    _rect.value = calculateCroppedRect(widget.controller, _layout);
+    _rect.value = calculateCroppedRectCover(widget.controller, _layout);
 
     _transform.value = TransformData.fromRect(
       _rect.value,
